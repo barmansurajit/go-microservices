@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strconv"
 
-	data "github.com/barmansurajit/product-api/data"
+	data "github.com/barmansurajit/go-microservices/product-api/data"
 )
 
 type Products struct {
@@ -24,9 +24,11 @@ func (p *Products) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == http.MethodPost {
 		p.addProduct(w, r)
+		w.WriteHeader(http.StatusCreated)
+		return
 	}
 	if r.Method == http.MethodPut {
-		p.l.Println("PUT", r.URL.Path)
+		// p.l.Println("PUT", r.URL.Path)
 		// expect the id in the URI
 		reg := regexp.MustCompile(`/([0-9]+)`)
 		g := reg.FindAllStringSubmatch(r.URL.Path, -1)
@@ -70,14 +72,11 @@ func (p *Products) addProduct(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Unable to read request", http.StatusBadRequest)
 	}
-	p.l.Printf("Product: %#v", product)
+	// p.l.Printf("Product: %#v", product)
 	data.AddProduct(product)
 }
 func (p Products) updateProducts(id int, rw http.ResponseWriter, r *http.Request) {
-	p.l.Println("Handle PUT Product")
-
 	prod := &data.Product{}
-
 	err := prod.FromJSON(r.Body)
 	if err != nil {
 		http.Error(rw, "Unable to unmarshal json", http.StatusBadRequest)
