@@ -21,15 +21,15 @@ func main() {
 	server := &http.Server{
 		Addr:         ":9090",
 		Handler:      serveMux,
-		IdleTimeout:  120 * time.Second,
-		ReadTimeout:  1 * time.Second,
-		WriteTimeout: 1 * time.Second,
+		IdleTimeout:  60 * time.Second,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
 	}
 
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
-			l.Printf("Error starting server: %s\n", err)
+			l.Println(err)
 			os.Exit(1)
 		}
 	}()
@@ -40,7 +40,8 @@ func main() {
 	s := <-signalChannel
 	log.Println("Received terminate, graceful shutdown", s)
 
-	tc, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	tc, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	server.Shutdown(tc)
-
+	os.Exit(0)
 }
